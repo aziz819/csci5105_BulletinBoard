@@ -6,4 +6,7 @@ A Java based Bulletin Board (BB) system. The BB is maintained by a group of repl
 JSON library 
 ------------
 
-json-simple
+* json-simple
+* Before running the program, please add json-simple-1.1.1.jar to the project library
+
+
