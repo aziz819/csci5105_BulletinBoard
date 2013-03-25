@@ -181,7 +181,8 @@ public class Server extends Thread {
 				if(article.contains("-1")){
 					if(this.checkCoordinator()){
 						String newArticle = setId(article).toJSONString();
-						articleList.add(articleFactory(newArticle));
+//						articleList.add(articleFactory(newArticle));
+						insertArticle(articleFactory(newArticle));
 						// If current server is coordinator, set id for the article, and send to all servers except coordinator itself
 						sendAllServer(addType(newArticle, Config.POST).toString());
 						
@@ -191,6 +192,7 @@ public class Server extends Thread {
 					}
 				}else{
 					articleList.add(articleFactory(article));
+//					insertArticle(articleFactory(article));
 				}
 				ack = "Post new article to Server Success";
 				buffer = ack.getBytes();
@@ -224,6 +226,30 @@ public class Server extends Thread {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+	
+	// Format insert article to articleList
+	public void insertArticle(Article article){
+		if(articleList.size()<2||article.replyId==0)
+			articleList.add(article);
+		else{
+			for(int i=0;i<articleList.size();i++){
+				Article a = articleList.get(i);
+				if(article.replyId==a.id){
+					if(i==articleList.size()-1){
+						articleList.add(article);
+						return;
+					}
+					for(int j=i+1;j<articleList.size();j++){
+						Article b = articleList.get(j);
+						if(article.replyId!=b.replyId){
+							articleList.add(j,article);
+							return;
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -304,9 +330,7 @@ public class Server extends Thread {
 	// send message to all servers except itself. This method is only be called by coordinator
 	public void sendAllServer(String msg){
 		for(Server server: serverList){
-			if(this.port == server.port)
-				continue;
-			else
+			if(this.port != server.port)
 				request(msg, server);
 		}
 	}
