@@ -308,12 +308,15 @@ public class Server extends Thread {
 					server.port);
 			socket.send(packet);
 			System.out.println("Request send to server");
+			// Don't need the ack from coordinator, since the coordinator will send the updated article back
+			if(server.port != Config.server.port){
+				buffer = new byte[Config.BUFFER_SIZE];
+		        packet = new DatagramPacket(buffer, buffer.length);
+		        socket.receive(packet); // wait for response
+		        String ack = new String(packet.getData());
+		        System.out.println("Receive ack from server " + ack);
+			}
 			
-			buffer = new byte[Config.BUFFER_SIZE];
-	        packet = new DatagramPacket(buffer, buffer.length);
-	        socket.receive(packet); // wait for response
-	        String ack = new String(packet.getData());
-	        System.out.println("Receive ack from server " + ack);
 	        socket.close();
 	        
 		} catch (Exception e) {
