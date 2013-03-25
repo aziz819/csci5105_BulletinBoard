@@ -129,8 +129,46 @@ public class ClientTest {
 			break; 
 		case 5: client.list();
 			break;
-		case 6: break;
-		case 7: break;
+		case 6: {
+			System.out.println("Which article would you like to read:");
+			int total = client.list();
+			String index = option.nextLine().trim();
+			if (!testInput(index, "number")
+					|| Integer.parseInt(index) > total
+					|| Integer.parseInt(index) < 1) {
+				System.out
+						.println("\n Invalid input!Enter a number bewteen 1 to "
+								+ total);
+				return;
+			}
+			client.read(Integer.parseInt(index));
+		}
+			break;
+		case 7: {
+			System.out.println("Which article would you like to reply:");
+			int total = client.list();
+			if(total==0) {
+				System.out.println("There is no articles currently");
+				return;
+			}
+			String index = option.nextLine().trim();
+			if (!testInput(index, "number")
+					|| Integer.parseInt(index) > total
+					|| Integer.parseInt(index) < 1) {
+				System.out
+						.println("\n Invalid input!Enter a number bewteen 1 to "
+								+ total);
+				return;
+			}
+			System.out.println("Please enter the content: ");
+			String content = option.nextLine().trim();
+			if(content.isEmpty()||content==null)
+				return;
+			String title = "reply to "+index;
+			Article article = new Article(title,content,Integer.parseInt(index));
+			client.reply(article);
+		}
+			break;
 		case 8:System.exit(0);
 			break;
 		default: break;

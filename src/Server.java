@@ -201,6 +201,16 @@ public class Server extends Thread {
 				buffer = ack.getBytes();
 				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
 				socket.send(packet);
+			} else if(((String) jsonObject.get("type")).equals(Config.READ)){
+				int index = Integer.parseInt((String.valueOf(jsonObject.get("index"))));
+				for(Article article : articleList){
+					if(article.id == index){
+						ack = article.toString();
+						buffer = ack.getBytes();
+						packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+						socket.send(packet);
+					}
+				}
 			}
 		} catch (ParseException e) {
 			System.out.println("position: " + e.getPosition());
@@ -216,6 +226,8 @@ public class Server extends Thread {
 			e.printStackTrace();
 		}
 	}
+	
+	// return all the articles
 	public String printArticleList(){
 		StringBuffer out = new StringBuffer("\n");
 		if(articleList.size()==0)
@@ -249,6 +261,7 @@ public class Server extends Thread {
 			newArticle.id = Config.id++;
 			newArticle.title = (String) obj.get("title");
 			newArticle.content = (String) obj.get("content");
+			newArticle.replyId = Integer.parseInt(String.valueOf(obj.get("replyId")));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -265,6 +278,7 @@ public class Server extends Thread {
 			newArticle.id = Integer.parseInt(String.valueOf(obj.get("id")));
 			newArticle.title = (String) obj.get("title");
 			newArticle.content = (String) obj.get("content");
+			newArticle.replyId = Integer.parseInt(String.valueOf(obj.get("replyId")));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -310,7 +324,7 @@ public class Server extends Thread {
 			System.out.println("Request send to server");
 			
 			// simulate the propagation delay : 25ms to 100ms
-			Thread.sleep((long) (25+Math.random()*1000));
+			Thread.sleep((long) (25+Math.random()*100));
 			
 			// Don't need the ack from coordinator, since the coordinator will send the updated article back
 			if(server.port != Config.server.port){

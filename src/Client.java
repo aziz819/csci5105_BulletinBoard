@@ -24,6 +24,8 @@ public class Client {
 	private String ipAddress;
 	private int portNumber;
 	
+	public String ack;
+	
 	public ArrayList<Server> serverList;
 	// If connectedServer is null, then NO more UDP communication allowed
 	public Server connectedServer;
@@ -112,7 +114,7 @@ public class Client {
 	        socket.receive(packet); // wait for response
 	        long endTime = System.currentTimeMillis();
 	        long cost = endTime-startTime;
-	        String ack = new String(packet.getData());
+	        ack = new String(packet.getData());
 	        System.out.println("Receive ack from server: " + ack);
 	        System.out.println("Cost of operation: "+ cost + "ms");
 	        socket.close();
@@ -166,15 +168,45 @@ public class Client {
 			
 	}
 	@SuppressWarnings("unchecked")
-	public void list(){
+	public int list(){
 		if(connectedServer==null)
 			System.out.println("You must connect to a server first");
 		else{
 			JSONObject obj = new JSONObject();
 			obj.put("type", Config.LIST);
 			request(obj.toString());
+			
+		}
+		return ack.split("[\\r\\n]+").length-2;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void read(int index){
+		if(connectedServer==null)
+			System.out.println("You must connect to a server first");
+		else{
+			JSONObject obj = new JSONObject();
+			obj.put("type", Config.READ);
+			obj.put("index", index);
+			request(obj.toString());
+			
 		}
 	}
+	
+	@SuppressWarnings("unchecked")
+	public void reply(Article article){
+		if(connectedServer==null)
+			System.out.println("You must connect to a server first");
+		else{
+			JSONObject obj = new JSONObject();
+			// reply message is also a post
+			obj.put("type",Config.POST);
+			obj.put("article", article.toJSONString());
+			System.out.println(obj);
+			request(obj.toString());
+		}
+	}
+	
 	public String toString(){
 		return getIpAddress()+";"+Integer.toString(getPortNumber())+";";
 	}
