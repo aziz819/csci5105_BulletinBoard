@@ -12,7 +12,7 @@ public class Config {
 	// coordinator
 	public static Server server = null;
 	// ID for article, only be assigned by coordinator
-	public static int id = 0;
+	public static int id = 1;
 	
 	public static final int BUFFER_SIZE = 256;
 	

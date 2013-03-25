@@ -36,9 +36,14 @@ public class Server extends Thread {
 
 	public void setCoordinator(boolean isCoordinator) {
 		this.isCoordinator = isCoordinator;
-		Config.server = new Server(this.port);
+		Config.server = this;
+//		Config.server = new Server(this.port);
 	}
-
+	
+	public boolean checkCoordinator(){
+		return isCoordinator;
+	}
+	
 	public Server() {
 		try {
 			ip = InetAddress.getLocalHost().getHostAddress();
@@ -127,11 +132,10 @@ public class Server extends Thread {
 				System.out.println("Server receive client request");
 				inMsg = new String(packet.getData()).trim();
 				
-				checkMsg();
-				
 				InetAddress address = packet.getAddress();
 				int port = packet.getPort();
-				client = new Client(address.getHostAddress(), port);
+				client = new Client(address.getHostAddress(), port);		
+				
 				buffer = null;
 				String ack = "CONFIRM";
 				buffer = ack.getBytes();
@@ -141,7 +145,8 @@ public class Server extends Thread {
 			} catch (Exception e) {
 				System.out.println("Socket communication failed");
 				e.printStackTrace();
-			}		
+			}	
+			checkMsg();
 		}
 	}
 
@@ -160,13 +165,67 @@ public class Server extends Thread {
 			} else if (((String) jsonObject.get("type")).equals(Config.POST)) {
 				String article = (String) jsonObject.get("article");
 				System.out.println(article);
+				if(article.contains("-1")){
+					if(this.checkCoordinator()){
+						String newArticle = setId(article).toJSONString();
+						articleList.add(articleFactory(newArticle));
+						// If current server is coordinator, set id for the article, and send to all servers except coordinator itself
+						sendAllServer(addType(newArticle, Config.POST).toString());
+						
+					}else{
+						// If current server is not coordinator, send article to coordinator
+						request(addType(article, Config.POST).toString(), Config.server);
+					}
+				}else{
+					articleList.add(articleFactory(article));
+				}
+				
 			}
 		} catch (ParseException e) {
 			System.out.println("position: " + e.getPosition());
 			e.printStackTrace();
 		}
 	}
-
+	// Add a message type
+	@SuppressWarnings("unchecked")
+	public JSONObject addType(String msg, String type){
+		JSONObject obj = new JSONObject();
+		obj.put("type",type);
+		obj.put("article", msg);
+		return obj;
+	}
+	// Set the id for article
+	public Article setId(String article){
+		JSONObject obj = new JSONObject();
+		JSONParser parser = new JSONParser();
+		Article newArticle = new Article();
+		try {
+			Object obje = parser.parse(article);
+			obj = (JSONObject) obje;
+			newArticle.id = Config.id++;
+			newArticle.title = (String) obj.get("title");
+			newArticle.content = (String) obj.get("content");
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return newArticle;
+	}
+	
+	public Article articleFactory(String article){
+		JSONObject obj = new JSONObject();
+		JSONParser parser = new JSONParser();
+		Article newArticle = new Article();
+		try {
+			Object obje = parser.parse(article);
+			obj = (JSONObject) obje;
+			newArticle.id = Integer.parseInt(String.valueOf(obj.get("id")));
+			newArticle.title = (String) obj.get("title");
+			newArticle.content = (String) obj.get("content");
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return newArticle;
+	}
 	// Get the server info from Config class
 	public void setServerList() {
 		int numberOfServer = Config.rank;
@@ -183,12 +242,47 @@ public class Server extends Thread {
 	public String toString() {
 		return this.ip + ": " + this.port;
 	}
-
+	
+	// send message to all servers except itself. This method is only be called by coordinator
+	public void sendAllServer(String msg){
+		for(Server server: serverList){
+			if(this.port == server.port)
+				continue;
+			else
+				request(msg, server);
+		}
+	}
+	// Send message to server.
+	public void request(String msg, Server server){
+		try {
+			DatagramSocket socket = new DatagramSocket();
+			byte buffer[] = new byte[Config.BUFFER_SIZE];
+			buffer = msg.getBytes();
+			DatagramPacket packet;
+		
+			packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(server.ip),
+					server.port);
+			socket.send(packet);
+			System.out.println("Request send to server");
+			
+			buffer = new byte[Config.BUFFER_SIZE];
+	        packet = new DatagramPacket(buffer, buffer.length);
+	        socket.receive(packet); // wait for response
+	        String ack = new String(packet.getData());
+	        System.out.println("Receive ack from server " + ack);
+	        socket.close();
+	        
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public static void main(String[] args) {
-		// Test a single server
+		// Create server
 		Server s1 = new Server();
 		Server s2 = new Server();
 		Server s3 = new Server();
+		// initial server
 		s3.setCoordinator(true);
 		s1.setServerList();
 		s2.setServerList();
