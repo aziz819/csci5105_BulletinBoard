@@ -100,17 +100,21 @@ public class Client {
 			byte buffer[] = new byte[Config.BUFFER_SIZE];
 			buffer = msg.getBytes();
 			DatagramPacket packet;
-		
 			packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(connectedServer.ip),
 					connectedServer.port);
+			long startTime = System.currentTimeMillis();
 			socket.send(packet);
 			System.out.println("Request send to server");
-			
+			// simulate the propagation delay : 25ms to 100ms
+			Thread.sleep((long) (25+Math.random()*100));
 			buffer = new byte[Config.BUFFER_SIZE];
 	        packet = new DatagramPacket(buffer, buffer.length);
 	        socket.receive(packet); // wait for response
+	        long endTime = System.currentTimeMillis();
+	        long cost = endTime-startTime;
 	        String ack = new String(packet.getData());
 	        System.out.println("Receive ack from server: " + ack);
+	        System.out.println("Cost of operation: "+ cost + "ms");
 	        socket.close();
 	        
 		} catch (Exception e) {

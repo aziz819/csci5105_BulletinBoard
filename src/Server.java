@@ -308,6 +308,10 @@ public class Server extends Thread {
 					server.port);
 			socket.send(packet);
 			System.out.println("Request send to server");
+			
+			// simulate the propagation delay : 25ms to 100ms
+			Thread.sleep((long) (25+Math.random()*1000));
+			
 			// Don't need the ack from coordinator, since the coordinator will send the updated article back
 			if(server.port != Config.server.port){
 				buffer = new byte[Config.BUFFER_SIZE];
