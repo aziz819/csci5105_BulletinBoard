@@ -127,7 +127,8 @@ public class ClientTest {
 			client.post(article);
 		}
 			break; 
-		case 5: break;
+		case 5: client.list();
+			break;
 		case 6: break;
 		case 7: break;
 		case 8:System.exit(0);

@@ -110,7 +110,7 @@ public class Client {
 	        packet = new DatagramPacket(buffer, buffer.length);
 	        socket.receive(packet); // wait for response
 	        String ack = new String(packet.getData());
-	        System.out.println("Receive ack from server " + ack);
+	        System.out.println("Receive ack from server: " + ack);
 	        socket.close();
 	        
 		} catch (Exception e) {
@@ -143,7 +143,7 @@ public class Client {
 	@SuppressWarnings("unchecked")
 	public void leaveServer(){
 		JSONObject obj2 = new JSONObject();
-		obj2.put("type","leave");
+		obj2.put("type", Config.LEAVE);
 		request(obj2.toString());
 		System.out.println("Leave server with port "+ connectedServer.port + " success");
 		this.connectedServer = null;
@@ -161,11 +161,15 @@ public class Client {
 		}
 			
 	}
+	@SuppressWarnings("unchecked")
 	public void list(){
 		if(connectedServer==null)
 			System.out.println("You must connect to a server first");
-		else
-			request(Config.LIST);
+		else{
+			JSONObject obj = new JSONObject();
+			obj.put("type", Config.LIST);
+			request(obj.toString());
+		}
 	}
 	public String toString(){
 		return getIpAddress()+";"+Integer.toString(getPortNumber())+";";

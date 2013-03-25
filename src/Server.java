@@ -136,12 +136,12 @@ public class Server extends Thread {
 				int port = packet.getPort();
 				client = new Client(address.getHostAddress(), port);		
 				
-				buffer = null;
-				String ack = "CONFIRM";
-				buffer = ack.getBytes();
-				packet = new DatagramPacket(buffer, buffer.length, address,
-						port);
-				socket.send(packet);
+//				buffer = null;
+//				String ack = "CONFIRM";
+//				buffer = ack.getBytes();
+//				packet = new DatagramPacket(buffer, buffer.length, address,
+//						port);
+//				socket.send(packet);
 			} catch (Exception e) {
 				System.out.println("Socket communication failed");
 				e.printStackTrace();
@@ -155,13 +155,26 @@ public class Server extends Thread {
 			JSONParser parser = new JSONParser();
 			Object obj = parser.parse(inMsg);
 			JSONObject jsonObject = (JSONObject) obj;
-
+			
+			String ack = "";
+			byte buffer[];
+			DatagramSocket socket = new DatagramSocket();
+			DatagramPacket packet;
+			
 			if (((String) jsonObject.get("type")).equals(Config.JOIN)) {
 				clientList.add(client);
 				System.out.println("client with PORT "+client.getPortNumber()+" JOINED server");
+				ack = "Join Server Success";
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
 			} else if (((String) jsonObject.get("type")).equals(Config.LEAVE)) {
 				clientList.remove(client);
 				System.out.println("client with PORT "+client.getPortNumber()+" LEAVED server");
+				ack = "Leave Server Success";
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
 			} else if (((String) jsonObject.get("type")).equals(Config.POST)) {
 				String article = (String) jsonObject.get("article");
 				System.out.println(article);
@@ -179,12 +192,43 @@ public class Server extends Thread {
 				}else{
 					articleList.add(articleFactory(article));
 				}
-				
+				ack = "Post new article to Server Success";
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
+			} else if(((String) jsonObject.get("type")).equals(Config.LIST)){
+				ack = printArticleList();
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
 			}
 		} catch (ParseException e) {
 			System.out.println("position: " + e.getPosition());
 			e.printStackTrace();
+		} catch (SocketException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+	}
+	public String printArticleList(){
+		StringBuffer out = new StringBuffer("\n");
+		if(articleList.size()==0)
+			return "";
+		else{
+			for(Article article:articleList){
+				out.append(article.id);
+				out.append(" ");
+				out.append(article.title);
+				out.append("\n");
+			}
+		}
+		return out.toString();
 	}
 	// Add a message type
 	@SuppressWarnings("unchecked")
