@@ -23,4 +23,5 @@ public class Config {
 	public static final String LIST = "list";
 	public static final String POST = "post";
 	public static final String REPLY = "reply";
+	public static final String PRIMARY = "true";
 }

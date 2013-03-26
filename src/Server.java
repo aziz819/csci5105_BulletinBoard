@@ -56,6 +56,7 @@ public class Server extends Thread {
 		// set the default value as false
 		isCoordinator = false;
 		saveConfig();
+		setServerList();
 		System.out.println("Server with Port " + port
 				+ " waiting for clients request ");
 		start();
@@ -208,6 +209,12 @@ public class Server extends Thread {
 						socket.send(packet);
 					}
 				}
+			} else if(((String) jsonObject.get("type")).equals(Config.PRIMARY)){
+				setCoordinator(true);
+				ack = this.toString();
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
 			}
 		} catch (ParseException e) {
 			System.out.println("position: " + e.getPosition());
@@ -382,11 +389,8 @@ public class Server extends Thread {
 		Server s1 = new Server();
 		Server s2 = new Server();
 		Server s3 = new Server();
-		// initial server
-		s3.setCoordinator(true);
-		s1.setServerList();
-		s2.setServerList();
-		s3.setServerList();
+
+		new CoordinatorHelper();
 	}
 
 }
