@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -101,18 +102,14 @@ public class Server extends Thread {
 		return false;
 	}
 
-	/**
-	 * Three functions included
-	 * 
-	 * 1. Listen for the client's request 2. check the incoming message 3. Ping
-	 * coordinator periodically to make sure coordinator is running If the
-	 * coordinator is down, call election() to elect new coordinator
-	 */
 	public void run() {
 		listenClient();
 	}
 
-	// Listen incoming client's request
+	/**
+	 *  Listen incoming client's request
+	 *  ONLY Receive the incoming message, the reply message will be send out by checkMsg()
+	 */
 	public void listenClient() {
 
 		DatagramSocket socket = null;
@@ -136,12 +133,6 @@ public class Server extends Thread {
 				int port = packet.getPort();
 				client = new Client(address.getHostAddress(), port);		
 				
-//				buffer = null;
-//				String ack = "CONFIRM";
-//				buffer = ack.getBytes();
-//				packet = new DatagramPacket(buffer, buffer.length, address,
-//						port);
-//				socket.send(packet);
 			} catch (Exception e) {
 				System.out.println("Socket communication failed");
 				e.printStackTrace();
@@ -150,6 +141,12 @@ public class Server extends Thread {
 		}
 	}
 
+	/**
+	 * check the incoming message type
+	 * Process the requests and send out the confirmation message
+	 * 
+	 * POST request offers Sequential Consistency 
+	 */
 	public void checkMsg() {
 		try {
 			JSONParser parser = new JSONParser();
@@ -181,7 +178,6 @@ public class Server extends Thread {
 				if(article.contains("-1")){
 					if(this.checkCoordinator()){
 						String newArticle = setId(article).toJSONString();
-//						articleList.add(articleFactory(newArticle));
 						insertArticle(articleFactory(newArticle));
 						// If current server is coordinator, set id for the article, and send to all servers except coordinator itself
 						sendAllServer(addType(newArticle, Config.POST).toString());
@@ -191,8 +187,7 @@ public class Server extends Thread {
 						request(addType(article, Config.POST).toString(), Config.server);
 					}
 				}else{
-					articleList.add(articleFactory(article));
-//					insertArticle(articleFactory(article));
+					insertArticle(articleFactory(article));
 				}
 				ack = "Post new article to Server Success";
 				buffer = ack.getBytes();
@@ -259,15 +254,31 @@ public class Server extends Thread {
 		if(articleList.size()==0)
 			return "";
 		else{
-			for(Article article:articleList){
-				out.append(article.id);
+			// Construct indents
+			HashMap<Integer, String> map = new HashMap<Integer, String>();
+			for(Article a : articleList){
+				String indent = "";
+				if(a.replyId==0)
+					map.put(a.id, indent);
+				else{
+					if(map.containsKey(a.replyId)){
+						indent = "\t"+map.get(a.replyId);
+						map.put(a.id, indent);
+					}	
+				}
+			}
+			// Format output
+			for(Article a : articleList){
+				out.append(map.get(a.id));
+				out.append(a.id);
 				out.append(" ");
-				out.append(article.title);
+				out.append(a.title);
 				out.append("\n");
 			}
 		}
 		return out.toString();
 	}
+
 	// Add a message type
 	@SuppressWarnings("unchecked")
 	public JSONObject addType(String msg, String type){
