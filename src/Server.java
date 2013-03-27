@@ -96,7 +96,7 @@ public class Server extends Thread {
 			e.printStackTrace();
 		}
 
-		System.out.print(obj);
+//		System.out.print(obj);
 	}
 
 	public boolean election() {

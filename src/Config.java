@@ -11,6 +11,8 @@ public class Config {
 	public static int port = 6600;
 	// coordinator
 	public static Server server = null;
+	// NrNw is the intersection of Read quorum and Write quorum
+	public static Server NrNw = null;
 	// ID for article, only be assigned by coordinator
 	public static int id = 1;
 	
