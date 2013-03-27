@@ -1,7 +1,9 @@
+import java.util.ArrayList;
+
 /**
  * The system default
  * 
- * @author fan
+ * @author Fan Zhang, Zhiqi Chen
  *
  */
 public class Config {
@@ -16,6 +18,13 @@ public class Config {
 	// ID for article, only be assigned by coordinator
 	public static int id = 1;
 	
+	// Set a limit for counter of synch operation. Once the Limit is reached, then perform synch operation
+	// After total LIMITS number of posts or reply, then synch
+	public static final int LIMIT = 20;
+	// Set a Latest version of article list
+	public static ArrayList<Article> latestArticles;
+	
+	// Set the buffer size for the UDP socket
 	public static final int BUFFER_SIZE = 256;
 	
 	// The following stirng are default operation type
@@ -26,4 +35,5 @@ public class Config {
 	public static final String POST = "post";
 	public static final String REPLY = "reply";
 	public static final String PRIMARY = "true";
+	public static final String SYNC = "sync";
 }

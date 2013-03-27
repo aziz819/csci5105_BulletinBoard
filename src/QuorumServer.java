@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -15,9 +16,9 @@ public class QuorumServer extends Server{
 	
 	public ArrayList<Server> Nr;
 	public ArrayList<Server> Nw;
-	public Server NrNw; // which is one server within the intersection of the Nr and Nw
-	
-	int NrSize, NwSize;
+	public Server NrNw; // which is one server within the intersection of the Nr and Nw.
+	public int counter;
+	public int NrSize, NwSize;
 	
 	public QuorumServer(String NrSize, String NwSize){
 		
@@ -28,6 +29,7 @@ public class QuorumServer extends Server{
 			System.out.println("Nr and Nw violate the constraints");
 			System.exit(0);
 		}
+		counter = 0;
 	}
 
 	// Check whether Nr and Nw satisfy the constraints
@@ -69,6 +71,7 @@ public class QuorumServer extends Server{
 			int index = (int) (Math.random()*length);
 			Server s = tempList.get(index);
 			Nw.add(s);
+			// Random choose the server within the intersection of Nr and Nw
 			Config.NrNw = s;
 			tempList.remove(s);
 			count--;
@@ -81,6 +84,7 @@ public class QuorumServer extends Server{
 	 * 
 	 * This method offers Quorum Consistency 
 	 */
+	@SuppressWarnings("unchecked")
 	public void checkMsg() {
 		try {
 				
@@ -117,9 +121,16 @@ public class QuorumServer extends Server{
 						System.out.println("Nr = "+Nr.size()+"\nNw = "+Nw.size());
 						String newArticle = setId(article).toJSONString();
 						insertArticle(articleFactory(newArticle));
-						// If current server is coordinator, set id for the article, and send to all servers except coordinator itself
+						// If current server is coordinator, set id for the article, and send message to Write Quorum servers
 						sendAllServer(addType(newArticle, Config.POST).toString());
-						
+						if(++counter>=Config.LIMIT){
+							counter = 0;
+							Config.latestArticles = new ArrayList<Article>(articleList);
+							JSONObject sync = new JSONObject();
+							// Send a synchronize message
+							sync.put("type",Config.SYNC);
+							sendServers(sync.toString());
+						}
 					}else{
 						// If current server is not coordinator, send article to coordinator
 						request(addType(article, Config.POST).toString(), Config.server);
@@ -168,6 +179,13 @@ public class QuorumServer extends Server{
 			} else if(((String) jsonObject.get("type")).equals(Config.PRIMARY)){
 				setCoordinator(true);
 				ack = this.toString();
+				buffer = ack.getBytes();
+				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
+				socket.send(packet);
+			} else if(((String) jsonObject.get("type")).equals(Config.SYNC)){
+				// When receive SYNC request, perform synchronization
+				articleList = new ArrayList<Article>(union(Config.latestArticles,articleList));
+				ack = "Synchronize completed";
 				buffer = ack.getBytes();
 				packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName(client.getIpAddress()), client.getPortNumber());
 				socket.send(packet);
@@ -225,10 +243,61 @@ public class QuorumServer extends Server{
 				request(msg, server);
 		}
 	}
+	
+	// send message to all other servers. This method is only be called by coordinator
+	public void sendServers(String msg) {
+		// server list set to all other servers
+		for (Server server : serverList) {
+			if (this.port != server.port)
+				request(msg, server);
+		}
+	}
 		
+	// Get the union of two arraylists
+	public ArrayList<Article> union(ArrayList<Article> list1, ArrayList<Article> list2) {
+		if(list1.size()==list2.size())
+			return new ArrayList<Article>(list1);
+		HashMap<Integer, Article> hm = new HashMap<Integer, Article>();
+		for(Article a : list1){
+			hm.put(a.id, a);
+		}
+		for(Article b : list2){
+			if(!hm.containsKey(b.id)){
+				insertArticle(b,list1);
+			}
+		}
+        return list1;
+    }
+	
+	// Format insert article to articleList
+		public void insertArticle(Article article, ArrayList<Article> articleList){
+			if(articleList.size()<2||article.replyId==0)
+				articleList.add(article);
+			else{
+				for(int i=0;i<articleList.size();i++){
+					Article a = articleList.get(i);
+					if(article.replyId==a.id){
+						if(i==articleList.size()-1){
+							articleList.add(article);
+							return;
+						}
+						for(int j=i+1;j<articleList.size();j++){
+							Article b = articleList.get(j);
+							if(article.replyId!=b.replyId){
+								articleList.add(j,article);
+								return;
+							}
+						}
+					}
+				}
+			}
+		}
+
 	public static void main(String[] args) {
 		System.out.println(args[0]+";"+args[1]);
 		// Create server
+		 new QuorumServer(args[0],args[1]);
+		 new QuorumServer(args[0],args[1]);
 		 new QuorumServer(args[0],args[1]);
 		 new QuorumServer(args[0],args[1]);
 		 new QuorumServer(args[0],args[1]);
