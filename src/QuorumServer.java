@@ -31,7 +31,15 @@ public class QuorumServer extends Server{
 		}
 		counter = 0;
 	}
-
+	public QuorumServer(int NrSize, int NwSize){
+		this.NrSize = NrSize;
+		this.NwSize = NwSize;
+		if(!checkConstrain(this.NrSize, this.NwSize)){
+			System.out.println("Nr and Nw violate the constraints!");
+			System.exit(0);
+		}
+		counter = 0;
+	}
 	// Check whether Nr and Nw satisfy the constraints
 	public boolean checkConstrain(int rsize, int wsize){
 		if(rsize + wsize>this.serverList.size() && wsize>this.serverList.size()/2)
@@ -144,7 +152,7 @@ public class QuorumServer extends Server{
 				socket.send(packet);
 			} else if(((String) jsonObject.get("type")).equals(Config.LIST)){
 				NrNw = Config.NrNw;
-				// Return the article which has the highest version number
+				// Return the article which has the highest version number from the server NrNw in READ Quorum
 				System.out.println("Current Server"+this.port+"\nNrNw Server"+NrNw.port);
 				if (this.port == NrNw.port) {
 					ack = printArticleList();
@@ -253,7 +261,7 @@ public class QuorumServer extends Server{
 		}
 	}
 		
-	// Get the union of two arraylists
+	// SYNCHRONIZE Get the union of two arraylists
 	public ArrayList<Article> union(ArrayList<Article> list1, ArrayList<Article> list2) {
 		if(list1.size()==list2.size())
 			return new ArrayList<Article>(list1);
@@ -293,16 +301,16 @@ public class QuorumServer extends Server{
 			}
 		}
 
-	public static void main(String[] args) {
-		System.out.println(args[0]+";"+args[1]);
-		// Create server
-		 new QuorumServer(args[0],args[1]);
-		 new QuorumServer(args[0],args[1]);
-		 new QuorumServer(args[0],args[1]);
-		 new QuorumServer(args[0],args[1]);
-		 new QuorumServer(args[0],args[1]);
-		
-		new CoordinatorHelper();
-	}
+//	public static void main(String[] args) {
+//		System.out.println(args[0]+";"+args[1]);
+//		// Create server
+//		 new QuorumServer(args[0],args[1]);
+//		 new QuorumServer(args[0],args[1]);
+//		 new QuorumServer(args[0],args[1]);
+//		 new QuorumServer(args[0],args[1]);
+//		 new QuorumServer(args[0],args[1]);
+//		
+//		new CoordinatorHelper();
+//	}
 
 }

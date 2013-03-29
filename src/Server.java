@@ -330,8 +330,8 @@ public class Server extends Thread {
 	}
 	// Get the server info from Config class
 	public void setServerList() {
-		int numberOfServer = Config.rank;
-		int serverPort = Config.port - 1;
+		int numberOfServer = Config.total;
+		int serverPort = Config.FIRST_PORT+numberOfServer-1;
 		// System.out.println(numberOfServer);
 		// System.out.println(serverPort);
 		while (numberOfServer > 0) {
@@ -384,6 +384,7 @@ public class Server extends Thread {
 			e.printStackTrace();
 		}
 	}
+	
 	public static void main(String[] args) {
 		// Create server
 		Server s1 = new Server();

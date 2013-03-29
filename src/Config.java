@@ -7,10 +7,14 @@ import java.util.ArrayList;
  *
  */
 public class Config {
+	// define the total number of servers
+	public static int total;
 	// rank is used for election, also can be marked the number of servers
 	public static int rank = 0;
+	// set the inital port 
+	public static final int FIRST_PORT = 6600;
 	// set the first number of port as 6600, other servers' port just increase by 1 
-	public static int port = 6600;
+	public static int port = FIRST_PORT;
 	// coordinator
 	public static Server server = null;
 	// NrNw is the intersection of Read quorum and Write quorum
@@ -24,8 +28,10 @@ public class Config {
 	// Set a Latest version of article list
 	public static ArrayList<Article> latestArticles;
 	
+	// Set a number of total number of articles should show up in a page
+	public static final int PAGE_LIMIT = 20;
 	// Set the buffer size for the UDP socket
-	public static final int BUFFER_SIZE = 256;
+	public static final int BUFFER_SIZE = 1024;
 	
 	// The following stirng are default operation type
 	public static final String LEAVE = "leave";
