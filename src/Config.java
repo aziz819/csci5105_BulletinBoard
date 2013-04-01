@@ -24,12 +24,12 @@ public class Config {
 	
 	// Set a limit for counter of synch operation. Once the Limit is reached, then perform synch operation
 	// After total LIMITS number of posts or reply, then synch
-	public static final int LIMIT = 20;
+	public static final int LIMIT = 5;
 	// Set a Latest version of article list
 	public static ArrayList<Article> latestArticles;
 	
 	// Set a number of total number of articles should show up in a page
-	public static final int PAGE_LIMIT = 20;
+	public static final int PAGE_LIMIT = 50;
 	// Set the buffer size for the UDP socket
 	public static final int BUFFER_SIZE = 1024;
 	

@@ -14,7 +14,7 @@ import org.json.simple.parser.ParseException;
 
 /**
  * 
- * 
+ * Server class implement the sequential consistency
  * 
  * @author Fan Zhang, Zhiqi Chen
  */
@@ -385,13 +385,13 @@ public class Server extends Thread {
 		}
 	}
 	
-	public static void main(String[] args) {
-		// Create server
-		Server s1 = new Server();
-		Server s2 = new Server();
-		Server s3 = new Server();
-
-		new CoordinatorHelper();
-	}
+//	public static void main(String[] args) {
+//		// Create server
+//		Server s1 = new Server();
+//		Server s2 = new Server();
+//		Server s3 = new Server();
+//
+//		new CoordinatorHelper();
+//	}
 
 }

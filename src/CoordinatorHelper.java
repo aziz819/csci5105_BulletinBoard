@@ -15,6 +15,9 @@ import org.json.simple.parser.JSONParser;
 
 /**
  * CoordinatorHelper will make a election for coordinator based on the highest rank
+ * It also periodically check with coordinator to make sure the server is not down
+ * If the server is response within the time limit, then it will be treated as down. 
+ * CoordinatorHelper class will hold a election for new coordinator based on the highest rank
  * 
  * @author Fan Zhang, Zhiqi Chen
  *

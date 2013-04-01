@@ -1,6 +1,11 @@
 import java.util.Scanner;
 
-
+/**
+ * UI for starting up servers. Allow user to choose different types of consistency
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ *
+ */
 public class ServerTest {
 	
 	public static boolean isInteger(String str) {

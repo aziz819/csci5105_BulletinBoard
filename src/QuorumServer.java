@@ -11,7 +11,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-
+/**
+ * QuorumServer is a subclass of Server. Some methods are overrides in order to 
+ * implement quorum consistency.
+ * 
+ * @author Fan Zhang, Zhiqi Chen
+ *
+ */
 public class QuorumServer extends Server{
 	
 	public ArrayList<Server> Nr;
